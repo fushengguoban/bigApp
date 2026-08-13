@@ -1,0 +1,8 @@
+{
+    "app_name": "AI_Assistant",
+    "version": "1.0.0",
+    "features": [
+        "Chat",
+        "RAG"
+    ]
+}
