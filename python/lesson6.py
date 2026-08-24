@@ -113,38 +113,56 @@
 # print(f"双线程耗时: {time.time() - start_time:.2f} 秒")
 
 
-class SmartHome:
-    def turn_on_light(self):
-        return "💡 灯已打开"
+# class SmartHome:
+#     def turn_on_light(self):
+#         return "💡 灯已打开"
+#
+#     def turn_on_tv(self):
+#         return "📺 电视已打开"
+#
+#     def play_music(self):
+#         return "🎵 音乐已播放"
+#
+#
+# home = SmartHome()
+#
+# ai_command = "turn_on_tv"
+#
+# if ai_command == "turn_on_light":
+#     print(home.turn_on_light())
+# elif ai_command == "turn_on_tv":
+#     print(home.turn_on_tv())
+# # ... 如果有 100 个家电，这里就要写 100 个 elif！
+#
+# # ================= Python 程序员的上帝写法 (动态反射) =================
+# print("\n--- 见证 Python 反射魔法 ---")
+#
+# # 1. 探测器：检查有没有这个方法？
+# if hasattr(home, ai_command):
+#     # 2. 提取器：如果有，直接把这个方法（函数实体）抓出来！
+#     # 这就叫 反射！通过字符串名字，拿到了真实的代码执行权！
+#     action_func = getattr(home, ai_command)
+#
+#     # 3. 执行器：加个括号，当场执行！
+#     result = action_func()
+#     print("AI 执行结果:", result)
+# else:
+#     print("❌ AI 瞎指挥，家里没这个电器！")
 
-    def turn_on_tv(self):
-        return "📺 电视已打开"
 
-    def play_music(self):
-        return "🎵 音乐已播放"
+def bark(self):
+    return "汪汪汪"
 
+# 用type  动态的创造一个 Dog 类
+# 参数1  “dog” 是类的名称
+# 参数2  （）里面放继承的父类
+# 参数3   {}里面放类的属性和方法
+DynamicDog = type("Dog", (), {"age": 1, "speak": bark})
 
-home = SmartHome()
+my_dog = DynamicDog()
 
-ai_command = "turn_on_tv"
+print(f"这条狗的年龄是{my_dog.age}")
+print(f"这条狗的叫声：{my_dog.speak()}")
 
-if ai_command == "turn_on_light":
-    print(home.turn_on_light())
-elif ai_command == "turn_on_tv":
-    print(home.turn_on_tv())
-# ... 如果有 100 个家电，这里就要写 100 个 elif！
-
-# ================= Python 程序员的上帝写法 (动态反射) =================
-print("\n--- 见证 Python 反射魔法 ---")
-
-# 1. 探测器：检查有没有这个方法？
-if hasattr(home, ai_command):
-    # 2. 提取器：如果有，直接把这个方法（函数实体）抓出来！
-    # 这就叫 反射！通过字符串名字，拿到了真实的代码执行权！
-    action_func = getattr(home, ai_command)
-
-    # 3. 执行器：加个括号，当场执行！
-    result = action_func()
-    print("AI 执行结果:", result)
-else:
-    print("❌ AI 瞎指挥，家里没这个电器！")
+# 3. 查一下这只狗的品种（类型）
+print("它的类型是：", type(my_dog))
