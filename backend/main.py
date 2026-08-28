@@ -34,7 +34,7 @@ except Exception as e:
     retriever = None
 
 # --- 大模型与 Agent 工具设置 ---
-API_KEY = "sk-4e969c60e870461e8ae5b5aa14f53848"
+API_KEY = "sk-7636f4e8e8a44c0cbb2bc8fb2f0fadaf"
 llm = ChatOpenAI(
     api_key=API_KEY,
     base_url="https://api.deepseek.com/v1",

@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+streamlit
+langchain
+langchain-community
+langchain-huggingface
+langgraph
+duckduckgo-search
+sentence-transformers
+pydantic
