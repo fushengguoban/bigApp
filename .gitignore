@@ -12,3 +12,5 @@ env/
 
 # 不要提交包含真实 API Key 的文件 (虽然我已经帮你脱敏了)
 # .env
+BigApp/chat_histoty.db*
+BigApp/__pycache__/
