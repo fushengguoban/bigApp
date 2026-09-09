@@ -3,7 +3,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from python.lesson17_cost_effective_agent import DEEPSEEK_API_KEY
+from python.lesson17_cost_effective_agent import DEEPSEEK_API_KEY, ddg_search
+from langchain_community.tools import DuckDuckGoSearchResults
 
 # ==============================================================================
 # 🛡️ 环节 1：API Key 严格脱敏与安全隔离 (业界生产级规范)
@@ -37,9 +38,19 @@ def mask_key(key: str) -> str:
         return "未配置或过短"
     return f"{key[:6]}******${key[-4:]}"
 
+
 print("=================================================================")
 print("🌐 第十七课：生产级低成本 Web Agent (网络请求 + 严格控量)")
 print("=================================================================")
 print(f"🔒 [安全检查] 当前加载的 Key: {mask_key(DEEPSEEK_API_KEY)}")
 print(f"📍 [接口地址] {DEEPSEEK_BASE_URL}\n")
+
+# ==============================================================================
+# 🧰 环节 2：打造轻量级、控 Token 的专属工具箱 (Tools)
+# ==============================================================================
+
+
+# 初始化 DuckDuckGo 搜索
+ddg_search = DuckDuckGoSearchResults(output_format="json", max_results=2)
+
 
