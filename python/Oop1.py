@@ -198,54 +198,91 @@ import time
 # print("场景2 - 是同一个对象(is)吗？:", num1 is num2)
 
 
-import copy
+# import copy
+#
+# original_data = [
+#     "普通文本", {"user": "老王", "role": "admin"}
+# ]
+# # 原始数据 original_data: ['普通文本', {'user': '老王', 'role': 'hacker'}]
+# # 拷贝数据 shallow_copied_data: ['被篡改的文本', {'user': '老王', 'role': 'hacker'}]
+# shallow_copied_data = copy.deepcopy(original_data)
+# # shallow_copied_data = original_data.copy()
+# shallow_copied_data[0] = "被篡改的文本"
+#
+# shallow_copied_data[1]["role"] = "hacker"
+#
+# # 见证奇迹的时刻
+# print("原始数据 original_data:", original_data)
+# print("拷贝数据 shallow_copied_data:", shallow_copied_data)
+#
+#
+# def create_counter():
+#     count = 0
+#     print("--- 工厂启动，初始化 count = 0 ---")
+#
+#     def counter_machine():
+#         # ⚠️ 魔法关键字：nonlocal (非局部变量)
+#         # 如果没有这一句，Python 会认为下面那句 count += 1 是你想在内部新建一个叫 count 的变量
+#         # 加上这句，就是告诉 Python："别瞎建，去外面那一层拿那个叫 count 的变量过来给我修改！"
+#         nonlocal count
+#         count += 1
+#         return count
+#
+#     # 返回的不是一个值，而是把这个内部函数（造好的机器）当做对象返回出去！
+#     return counter_machine
+#
+# # ================= 见证奇迹 =================
+#
+# # 第一步：调用外层函数，拿到那台“计数机器”
+# my_counter = create_counter()
+#
+# # 注意看！此时 create_counter() 这个函数明明已经执行完毕、彻底退出了！
+# # 按理说它里面的 count 变量应该早就随着函数的死掉而销毁了
+#
+#
+# # 第二步：但当我们不断按这台机器的开关时...
+# print("第一次调用:", my_counter())
+# print("第二次调用:", my_counter())
+# print("第三次调用:", my_counter())
+#
+# # 甚至我们可以再造一台完全独立的全新机器
+# print("\n新造一台机器...")
+# counter_b = create_counter()
+# print("新机器的第一次调用:", counter_b())
+import threading
 
-original_data = [
-    "普通文本", {"user": "老王", "role": "admin"}
-]
-# 原始数据 original_data: ['普通文本', {'user': '老王', 'role': 'hacker'}]
-# 拷贝数据 shallow_copied_data: ['被篡改的文本', {'user': '老王', 'role': 'hacker'}]
-shallow_copied_data = copy.deepcopy(original_data)
-# shallow_copied_data = original_data.copy()
-shallow_copied_data[0] = "被篡改的文本"
+# def loop():
+#     print("thread %s is running..." % threading.current_thread().name)
+#     n = 0
+#     while n < 5:
+#         n = n + 1
+#         print('thread %s >>> %s' % (threading.current_thread().name, n))
+#         time.sleep(1)
+#     print('thread %s ended.' % threading.current_thread().name)
+# print('thread %s is running...' % threading.current_thread().name)
+# t = threading.Thread(target=loop, name='LoopThread')
+# t.start()
+# t.join()
+# print('thread %s ended.' % threading.current_thread().name)
 
-shallow_copied_data[1]["role"] = "hacker"
+# balance =0
+#
+# def change_it(n):
+#     global balance
+#     balance= balance+n
+#     balance =balance-n
+#
+# def run_thread(n):
+#     for i in range(10000000):
+#         change_it(n)
+#
+# t1= threading.Thread(target=run_thread,args=(5,))
+# t2= threading.Thread(target=run_thread,args=(8,))
+# t1.start()
+# t2.start()
+# t1.join()
+# t2.join()
+# print(balance)
 
-# 见证奇迹的时刻
-print("原始数据 original_data:", original_data)
-print("拷贝数据 shallow_copied_data:", shallow_copied_data)
+import time, sys, queue
 
-
-def create_counter():
-    count = 0
-    print("--- 工厂启动，初始化 count = 0 ---")
-
-    def counter_machine():
-        # ⚠️ 魔法关键字：nonlocal (非局部变量)
-        # 如果没有这一句，Python 会认为下面那句 count += 1 是你想在内部新建一个叫 count 的变量
-        # 加上这句，就是告诉 Python："别瞎建，去外面那一层拿那个叫 count 的变量过来给我修改！"
-        nonlocal count
-        count += 1
-        return count
-
-    # 返回的不是一个值，而是把这个内部函数（造好的机器）当做对象返回出去！
-    return counter_machine
-
-# ================= 见证奇迹 =================
-
-# 第一步：调用外层函数，拿到那台“计数机器”
-my_counter = create_counter()
-
-# 注意看！此时 create_counter() 这个函数明明已经执行完毕、彻底退出了！
-# 按理说它里面的 count 变量应该早就随着函数的死掉而销毁了
-
-
-# 第二步：但当我们不断按这台机器的开关时...
-print("第一次调用:", my_counter())
-print("第二次调用:", my_counter())
-print("第三次调用:", my_counter())
-
-# 甚至我们可以再造一台完全独立的全新机器
-print("\n新造一台机器...")
-counter_b = create_counter()
-print("新机器的第一次调用:", counter_b())

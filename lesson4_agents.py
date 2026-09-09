@@ -47,7 +47,7 @@ llm = ChatOpenAI(
 # 在最新版的 LangChain 架构中，官方全面采用了更强大的 langgraph 来构建 Agent。
 # 用 create_react_agent 只需要把大脑(llm)和手(tools)传进去，外加一句系统提示词。
 system_prompt = "你是一个万能的私人助理。请使用你手头的工具来回答问题。"
-agent_executor = create_react_agent(llm, tools, state_modifier=system_prompt)
+agent_executor = create_react_agent(llm, tools, prompt=system_prompt)
 
 
 # ----------------- 开始测试 -----------------
