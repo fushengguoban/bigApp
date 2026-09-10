@@ -1,5 +1,7 @@
 # 第一章，学习LangChain 核心组件
-
+from langchain_core.chat_history import BaseChatMessageHistory, InMemoryChatMessageHistory
+from langchain_core.prompts.chat import MessagePromptTemplateT
+from langchain_core.runnables import RunnableWithMessageHistory
 #######################核心知识点讲解#########################
 # 1.LLM 与 ChatModel 的区别
 # LLM（文本生成模型）接受一段文字，返回一段文字，
@@ -33,11 +35,11 @@
 
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
-from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
+from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate, ChatPromptTemplate, MessagesPlaceholder
 import os
 from langchain_core.output_parsers import StrOutputParser
 
-from torch.utils.flop_counter import suffixes
+# from torch.utils.flop_counter import suffixes
 
 
 # 加载API密钥，
@@ -114,13 +116,43 @@ chat_model = ChatOpenAI(
 # print(formatted_prompt)
 
 
-# 创建 StrOutputParser 核心作用，将LLM 返回的AIMessage 对象，转为纯字符串
-parser = StrOutputParser()
+# # 创建 StrOutputParser 核心作用，将LLM 返回的AIMessage 对象，转为纯字符串
+# parser = StrOutputParser()
+#
+# # 链式 调用，模型-> 字符串解析
+# chain = chat_model | parser
+# result = chain.invoke("请简要介绍 LangChain 输出解析层的作用")
+#
+# print("StrOutputParser 解析后的字符串：")
+# print(result)
+# print("\n解析结果类型：", type(result))  # str
 
-# 链式 调用，模型-> 字符串解析
-chain = chat_model | parser
-result = chain.invoke("请简要介绍 LangChain 输出解析层的作用")
 
-print("StrOutputParser 解析后的字符串：")
-print(result)
-print("\n解析结果类型：", type(result))  # str
+full_memory_prompt = ChatPromptTemplate.from_messages({
+    ("system", "你是友好的对话助手，需要基于完整的的历史对话回答用户消息。"),
+    MessagesPlaceholder(variable_name="chat_history"),  # 历史消息占位符
+    ("human", "user_input")  # 用户当前输入
+})
+
+base_chain = full_memory_prompt | chat_model
+
+# 会话历史存储（内存模式，生产环境可以替代数据库存储）
+full_memory_store = {}
+
+
+# 4.定义会话历史获取函数
+
+def get_full_memory_history(session_id: str) -> BaseChatMessageHistory:
+    """根据session_id获取会话历史，不存在则创建新的历史记录"""
+    if session_id not in full_memory_store:
+        full_memory_store[session_id] = InMemoryChatMessageHistory()
+
+    return full_memory_store[session_id]
+
+#5.构建带全量记忆的对话链条
+full_memory_chain = RunnableWithMessageHistory(
+    runnable=base_chain,
+    get_session_history=get_full_memory_history,
+    input_messages_key="user_input",
+    history_messages_key="chat_history"
+)
