@@ -1,5 +1,6 @@
 # 第一章，学习LangChain 核心组件
 from langchain_core.chat_history import BaseChatMessageHistory, InMemoryChatMessageHistory
+from langchain_core.messages import trim_messages
 from langchain_core.prompts.chat import MessagePromptTemplateT
 from langchain_core.runnables import RunnableWithMessageHistory
 #######################核心知识点讲解#########################
@@ -18,8 +19,11 @@ from langchain_core.runnables import RunnableWithMessageHistory
 # 摘要记忆：通过LLM生成对话摘要替代完整历史，平衡上下文连贯性与效率
 #
 #
-#
-#
+# 3.目前全新的教程如下：
+# 全量记忆（Full Memory）—— 最简标准  聊天记录通过 MessagesState  自动追加并保存
+# 滑动窗口记忆（Window Memory）—— 最新官方 trim_messages 但只保留最近 $N$ 轮对话，防止历史太长撑爆 Context
+# 摘要压缩记忆（Summary Memory）—— 进阶控 Token 方案 当对话轮数超过一定阈值（比如超过 6 条），自动触发一个子节点，
+# 让大模型把旧对话提炼成一段 summary，清空旧记录，只保留“摘要 + 最新对话”
 #
 #
 #
@@ -41,6 +45,8 @@ from langchain_core.output_parsers import StrOutputParser
 
 # from torch.utils.flop_counter import suffixes
 
+from langgraph.graph import StateGraph, START, MessagesState
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 # 加载API密钥，
 load_dotenv()
@@ -61,6 +67,7 @@ chat_model = ChatOpenAI(
     temperature=0.3,  # 随机性：0-1，越小越严谨，越大越有创造力
     max_tokens=200  # 最大生成 tokens 数，避免生成过长内容
 )
+
 
 # # 2.构造对话消息
 # # ChatModel 需要接收的是 “消息列表”，每个消息有角色和内容
@@ -128,31 +135,63 @@ chat_model = ChatOpenAI(
 # print("\n解析结果类型：", type(result))  # str
 
 
-full_memory_prompt = ChatPromptTemplate.from_messages({
-    ("system", "你是友好的对话助手，需要基于完整的的历史对话回答用户消息。"),
-    MessagesPlaceholder(variable_name="chat_history"),  # 历史消息占位符
-    ("human", "user_input")  # 用户当前输入
-})
+# full_memory_prompt = ChatPromptTemplate.from_messages([
+#     ("system", "你是友好的对话助手，需要基于完整的的历史对话回答用户消息。"),
+#     MessagesPlaceholder(variable_name="chat_history"),  # 历史消息占位符
+#     ("human", "user_input")  # 用户当前输入
+# ]
+# )
+#
+# base_chain = full_memory_prompt | chat_model
+#
+# # 会话历史存储（内存模式，生产环境可以替代数据库存储）
+# full_memory_store = {}
+#
+#
+# # 4.定义会话历史获取函数
+#
+# def get_full_memory_history(session_id: str) -> BaseChatMessageHistory:
+#     """根据session_id获取会话历史，不存在则创建新的历史记录"""
+#     if session_id not in full_memory_store:
+#         full_memory_store[session_id] = InMemoryChatMessageHistory()
+#
+#     return full_memory_store[session_id]
+#
+#
+# # 5.构建带全量记忆的对话链条
+# full_memory_chain = RunnableWithMessageHistory(
+#     runnable=base_chain,
+#     get_session_history=get_full_memory_history,
+#     input_messages_key="user_input",
+#     history_messages_key="chat_history"
+# )
 
-base_chain = full_memory_prompt | chat_model
+# 1.节点，直接拿全部历史发给模型
+def call_model(state: MessagesState):
+    response = chat_model.invoke(state["messages"])
+    return {"messages": response}
 
-# 会话历史存储（内存模式，生产环境可以替代数据库存储）
-full_memory_store = {}
+
+# 2.状态图，
+workflow = StateGraph(state_schema=MessagesState)
+workflow.add_edge(START, 'model')
+workflow.add_node("model", call_model)
+
+# 3。编译，直接传入SqliteSaver 实现真正的磁盘持久化
+with SqliteSaver.from_conn_string("chat_history.db") as checkpointer:
+    app = workflow.compile(checkpointer=checkpointer)
 
 
-# 4.定义会话历史获取函数
-
-def get_full_memory_history(session_id: str) -> BaseChatMessageHistory:
-    """根据session_id获取会话历史，不存在则创建新的历史记录"""
-    if session_id not in full_memory_store:
-        full_memory_store[session_id] = InMemoryChatMessageHistory()
-
-    return full_memory_store[session_id]
-
-#5.构建带全量记忆的对话链条
-full_memory_chain = RunnableWithMessageHistory(
-    runnable=base_chain,
-    get_session_history=get_full_memory_history,
-    input_messages_key="user_input",
-    history_messages_key="chat_history"
-)
+def call_model_with_window(state: MessagesState):
+    # 核心：在调用模型前做一次“滑动窗口裁剪”
+    # 例如：保留最近 4 条消息，且始终保留 system 提示词
+    trimmed = trim_messages(
+        state["messages"],
+        max_tokens=4,
+        strategy="last",
+        token_counter=len,
+        include_system=True,
+        start_on="human"
+    )
+    response = chat_model.invoke(trimmed)
+    return {"messages", response}
