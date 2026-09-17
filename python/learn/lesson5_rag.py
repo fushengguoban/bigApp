@@ -23,7 +23,7 @@ print("=========================================\n")
 
 # 1. 准备资料库 (老规矩，读取你的 company_secret.txt)
 print("1. 正在准备本地数据库...")
-loader = TextLoader("company_secret.txt", encoding="utf-8")
+loader = TextLoader("../../company_secret.txt", encoding="utf-8")
 splits = RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=20).split_documents(loader.load())
 # 注意：如果你之前跑过 rag_demo.py，这里的模型你应该已经下载过了，会很快。
 vectorstore = Chroma.from_documents(documents=splits, embedding=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2"))

@@ -10,7 +10,7 @@ from langchain_core.prompts import PromptTemplate
 
 # ================= 1. 加载本地私有文档 =================
 print("1. 正在读取本地机密文件...")
-loader = TextLoader("company_secret.txt", encoding="utf-8")
+loader = TextLoader("../../company_secret.txt", encoding="utf-8")
 docs = loader.load()
 
 # ================= 2. 将长文档切片 (Chunking) =================

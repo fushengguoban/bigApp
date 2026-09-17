@@ -1,5 +1,3 @@
-from web_chat import prompt
-
 chat_history = []
 
 

@@ -1,14 +1,10 @@
 import getpass
 import os
-from pyexpat.errors import messages
 
 from python.lesson6 import result
-from structured_output import system_prompt
 
 os.environ["OPENAI_API_KEY"] = getpass.getpass()
 
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
 #
 # model = ChatOpenAI(model="gpt-4")

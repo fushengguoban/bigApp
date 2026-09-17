@@ -16,16 +16,14 @@ import os
 import time
 
 from dotenv import load_dotenv
-from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 from langchain_community.document_loaders import PyPDFLoader, PyMuPDFLoader
 from langchain_community.vectorstores import Chroma
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_openai import ChatOpenAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-import more_learn_txt
-from demo.lesson17_cost_effective_agent import search_web
 
 load_dotenv()
 
@@ -108,3 +106,22 @@ prompt_template = ChatPromptTemplate.from_template("""
 【技术咨询问题】：
 {question}
 """)
+
+
+def format_docs(docs):
+    """将检索出来的 Document 对象列表拼接为纯文本，并保留页码来源"""
+    formatted = []
+    for i, doc in enumerate(docs):
+        page = doc.metadata.get("page", "未知")
+        formatted.append(f"--- [片段 {i+1} | 对应第 {page} 页] ---\n{doc.page_content.strip()}")
+
+    return "\n\n".join(formatted)
+
+rag_chain = (
+    {"context":retriever|format_docs,"question":RunnablePassthrough()}
+    | prompt_template
+    | llm
+    | StrOutputParser()
+)
+
+# 4. 自动化测试评估集（10 道典型测试题）
